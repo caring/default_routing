@@ -1,0 +1,48 @@
+DefaultRouting
+==============
+
+This is an SEO Optimization plugin that allows you to specify that one or more nested routes will not have
+a path segment added to their url.
+
+When combined with acts_as_url_param (or some other pretty url plugin), this results in nice tight urls without any extra folders in them in the cases where you can safely get away with it. 
+
+It's important to note that using a default nesting results in a url collision that hides the index action of the nested resource. This is usually fine, because the show action of the parent resource can and should acts as the index page, and in some cases is desirable so that you don't have to remember which named route to use.
+
+Example
+=======
+
+map.namespace :forum do |forum|
+  forum.resources :boards, :default => true do |boards|
+    boards.resources :threads, :default => true do |threads|
+      threads.resources :posts, :default => true
+    end
+  end
+end
+
+% rake routes | grep forum | grep -v format
+
+                forum_boards GET    /forum                               {:action=>"index", :controller=>"forum/boards"}
+                             POST   /forum                               {:action=>"create", :controller=>"forum/boards"}
+             new_forum_board GET    /forum/new                           {:action=>"new", :controller=>"forum/boards"}
+            edit_forum_board GET    /forum/:id/edit                      {:action=>"edit", :controller=>"forum/boards"}
+                 forum_board GET    /forum/:id                           {:action=>"show", :controller=>"forum/boards"}      << hides forum_board_threads
+                             PUT    /forum/:id                           {:action=>"update", :controller=>"forum/boards"}
+                             DELETE /forum/:id                           {:action=>"destroy", :controller=>"forum/boards"}
+         forum_board_threads GET    /forum/:board_id                     {:action=>"index", :controller=>"forum/threads"}
+                             POST   /forum/:board_id                     {:action=>"create", :controller=>"forum/threads"}
+      new_forum_board_thread GET    /forum/:board_id/new                 {:action=>"new", :controller=>"forum/threads"}
+     edit_forum_board_thread GET    /forum/:board_id/:id/edit            {:action=>"edit", :controller=>"forum/threads"}
+          forum_board_thread GET    /forum/:board_id/:id                 {:action=>"show", :controller=>"forum/threads"}     << hides forum_board_thread_posts
+                             PUT    /forum/:board_id/:id                 {:action=>"update", :controller=>"forum/threads"}
+                             DELETE /forum/:board_id/:id                 {:action=>"destroy", :controller=>"forum/threads"}
+    forum_board_thread_posts GET    /forum/:board_id/:thread_id          {:action=>"index", :controller=>"forum/posts"}     
+                             POST   /forum/:board_id/:thread_id          {:action=>"create", :controller=>"forum/posts"}
+ new_forum_board_thread_post GET    /forum/:board_id/:thread_id/new      {:action=>"new", :controller=>"forum/posts"}
+edit_forum_board_thread_post GET    /forum/:board_id/:thread_id/:id/edit {:action=>"edit", :controller=>"forum/posts"}
+     forum_board_thread_post GET    /forum/:board_id/:thread_id/:id      {:action=>"show", :controller=>"forum/posts"}
+                             PUT    /forum/:board_id/:thread_id/:id      {:action=>"update", :controller=>"forum/posts"}
+                             DELETE /forum/:board_id/:thread_id/:id      {:action=>"destroy", :controller=>"forum/posts"}
+
+
+
+Copyright (c) 2008 Chris Eppstein, released under the MIT license
