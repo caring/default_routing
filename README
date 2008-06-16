@@ -6,15 +6,19 @@ a path segment added to their url.
 
 When combined with acts_as_url_param (or some other pretty url plugin), this results in nice tight urls without any extra folders in them in the cases where you can safely get away with it.
 
-It's important to note that using a default nesting results in a url collision that hides the index action of the nested resource. This is usually fine, because the show action of the parent resource can and should acts as the index page, and in some cases is desirable so that you don't have to remember which named route to use.
+This plugin adds new new routing options:
+* :default - When true, causes the resource to not generate a namespace prefix
+* :show - a symbol identifying a nested resource whose index action should *replace* this resources show action.
+
+It's important to note that using a :default nesting results in a url collision that hides the index action of the nested resource. If routing to the index action is more desirable, use the :show option instead.
 
 Example
 =======
 
 map.namespace :forum do |forum|
-  forum.resources :boards, :default => true do |boards|
-    boards.resources :threads, :default => true do |threads|
-      threads.resources :posts, :default => true
+  forum.resources :boards, :default => true, :show => :threads do |boards|
+    boards.resources :threads, :show => posts do |threads|
+      threads.resources :posts
     end
   end
 end
@@ -25,23 +29,23 @@ end
                              POST   /forum
              new_forum_board GET    /forum/new
             edit_forum_board GET    /forum/:id/edit
-                 forum_board GET    /forum/:id      << prevents recognition of forum_board_threads
                              PUT    /forum/:id
                              DELETE /forum/:id
-         forum_board_threads GET    /forum/:board_id
+         forum_board_threads GET    /forum/:board_id             # prevents recognition of forum_board
                              POST   /forum/:board_id
       new_forum_board_thread GET    /forum/:board_id/new
      edit_forum_board_thread GET    /forum/:board_id/:id/edit
-          forum_board_thread GET    /forum/:board_id/:id      << prevents recognition of forum_board_thread_posts
                              PUT    /forum/:board_id/:id
                              DELETE /forum/:board_id/:id
-    forum_board_thread_posts GET    /forum/:board_id/:thread_id
+    forum_board_thread_posts GET    /forum/:board_id/:thread_id  # prevents recognition of forum_board_thread
                              POST   /forum/:board_id/:thread_id
  new_forum_board_thread_post GET    /forum/:board_id/:thread_id/new
 edit_forum_board_thread_post GET    /forum/:board_id/:thread_id/:id/edit
      forum_board_thread_post GET    /forum/:board_id/:thread_id/:id
                              PUT    /forum/:board_id/:thread_id/:id
                              DELETE /forum/:board_id/:thread_id/:id
+          forum_board_thread GET    /forum/:board_id/:id
+                 forum_board GET    /forum/:id
 
 % script/console
 >> app.forum_board_thread_post_path(Board.first, Thread.first, Post.first)
